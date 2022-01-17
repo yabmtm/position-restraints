@@ -1,0 +1,86 @@
+ATOM      1 C    UNK     1       0.000   0.000   0.000                       C 0
+ATOM      2 C    UNK     1      -0.676   1.359  -0.007                       C 0
+ATOM      3 C    UNK     1      -2.020   1.413  -0.010                       C 0
+ATOM      4 C    UNK     1      -2.672   2.585  -0.016                       C 0
+ATOM      5 C    UNK     1      -1.991   3.744  -0.019                       C 0
+ATOM      6 C    UNK     1      -0.645   3.712  -0.015                       C 0
+ATOM      7 C    UNK     1      -0.008   2.526  -0.009                       C 0
+ATOM      8 H    UNK     1       1.094   2.517  -0.006                       H 0
+ATOM      9 C    UNK     1       0.037   4.872  -0.018                       C 0
+ATOM     10 C    UNK     1      -0.595   6.059  -0.024                       C 0
+ATOM     11 C    UNK     1      -1.941   6.085  -0.027                       C 0
+ATOM     12 C    UNK     1      -2.627   4.929  -0.025                       C 0
+ATOM     13 H    UNK     1      -3.731   4.952  -0.027                       H 0
+ATOM     14 C    UNK     1      -2.572   7.272  -0.033                       C 0
+ATOM     15 C    UNK     1      -1.871   8.415  -0.036                       C 0
+ATOM     16 C    UNK     1      -0.526   8.412  -0.032                       C 0
+ATOM     17 C    UNK     1       0.093   7.217  -0.026                       C 0
+ATOM     18 H    UNK     1       1.193   7.179  -0.023                       H 0
+ATOM     19 C    UNK     1       0.208   9.740  -0.035                       C 0
+ATOM     20 C    UNK     1       1.744   9.701  -0.037                       C 0
+ATOM     21 C    UNK     1       2.346  11.114  -0.042                       C 0
+ATOM     22 H    UNK     1       3.460  11.075  -0.044                       H 0
+ATOM     23 H    UNK     1       2.027  11.685  -0.945                       H 0
+ATOM     24 H    UNK     1       2.030  11.690   0.858                       H 0
+ATOM     25 H    UNK     1       2.113   9.163   0.869                       H 0
+ATOM     26 H    UNK     1       2.110   9.158  -0.941                       H 0
+ATOM     27 H    UNK     1      -0.128  10.309  -0.935                       H 0
+ATOM     28 H    UNK     1      -0.126  10.312   0.862                       H 0
+ATOM     29 H    UNK     1      -2.414   9.376  -0.040                       H 0
+ATOM     30 H    UNK     1      -3.675   7.328  -0.036                       H 0
+ATOM     31 H    UNK     1       1.141   4.848  -0.015                       H 0
+ATOM     32 H    UNK     1      -3.776   2.576  -0.019                       H 0
+ATOM     33 H    UNK     1      -2.604   0.476  -0.008                       H 0
+ATOM     34 C    UNK     1       1.537  -0.026   0.005                       C 0
+ATOM     35 C    UNK     1       2.079  -1.463   0.012                       C 0
+ATOM     36 H    UNK     1       3.193  -1.470   0.016                       H 0
+ATOM     37 H    UNK     1       1.735  -2.019   0.914                       H 0
+ATOM     38 H    UNK     1       1.741  -2.026  -0.888                       H 0
+ATOM     39 H    UNK     1       1.924   0.502   0.910                       H 0
+ATOM     40 H    UNK     1       1.930   0.496  -0.901                       H 0
+ATOM     41 H    UNK     1      -0.362  -0.552   0.899                       H 0
+ATOM     42 H    UNK     1      -0.356  -0.558  -0.898                       H 0
+CONECT    2    3
+CONECT    2    7
+CONECT    6    7
+CONECT    5    6
+CONECT    3    4
+CONECT    4    5
+CONECT    6    9
+CONECT    9   10
+CONECT   10   11
+CONECT   11   12
+CONECT    5   12
+CONECT    3   33
+CONECT    1    2
+CONECT    7    8
+CONECT    4   32
+CONECT    9   31
+CONECT   10   17
+CONECT   11   14
+CONECT   12   13
+CONECT   16   17
+CONECT   14   15
+CONECT   15   16
+CONECT   17   18
+CONECT   14   30
+CONECT   15   29
+CONECT   16   19
+CONECT   34   35
+CONECT    1   34
+CONECT    1   41
+CONECT    1   42
+CONECT   34   39
+CONECT   34   40
+CONECT   35   36
+CONECT   35   37
+CONECT   35   38
+CONECT   19   20
+CONECT   20   21
+CONECT   19   27
+CONECT   19   28
+CONECT   20   25
+CONECT   20   26
+CONECT   21   22
+CONECT   21   23
+CONECT   21   24
