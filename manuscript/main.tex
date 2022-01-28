@@ -92,9 +92,9 @@ Computed free energies have become particularly valuable in the process of hit d
 
 A restrained double-decoupling approach has long been a standard procedure for calculating absolute binding free energies of protein-ligand binding.  In this approach, the free energy of alchemically decoupling the ligand is usually calculated in two steps: first, the free energy of \textit{restraining} the ligand is calculated, and then the free energy of decoupling the restrained ligand's nonbonded interactions is calculated.     For a ligand in complex with its protein receptor, the restraint is vitally important to keep the ligand from dissociating.  For a ligand in solution, the restraint free energy can be estimated analytically. 
 
-Currently, the most popular restraint scheme is a method by Boresch et al \cite{boresch2003absolute} that utilizes a set of orthogonal positional, angular, and dihedral restraints.  The advantage of this scheme is that it is an exact analytical expression for the free energy of restraint for a ligand in solution.    There are several disadvantages to this scheme, however.  One disadvantage is the practical difficulty of implementing three different kinds of restraints, and judiciously choosing the optimal degrees of freedom in which to impose them.  This has recently been emphasized by Proccaci et al. \cite{procacci2021ns} who show that large biases in free energies estimated using a non-equilibrium work (NEW) method can be introduced when the Boresch-restrained ligand pose does not match well with the actual pose, which is often unknown ahead of time.
+Currently, the most popular restraint scheme is a method by Boresch et al \cite{boresch2003absolute} that utilizes a set of orthogonal harmonic restraints.  The advantage of this scheme is that it provides an exact analytical expression for the free energy of restraint for a ligand in solution.    There are several disadvantages to this scheme, however.  One disadvantage is the practical difficulty of implementing different kinds of restraints.  The method uses one distance restraint, two angle restraints, and three dihedral restraints, requiring the choice of six different force constant parameters.  Furthermore, great care is required to judiciously choose the degrees of freedom on which to apply these constraints.  This difficulty has recently been emphasized by Proccaci et al. \cite{procacci2021ns} who show that large biases in free energies estimated using a non-equilibrium work (NEW) method can be introduced when the Boresch-restrained ligand pose does not match well with the actual pose, which is often unknown before performing the calculation.
 
-In this work, we propose a simpler alternative to Boresch-style orientation restraints that uses three harmonic position restraints.  This scheme is easier to implement in practice, and is accurate when sufficiently rigid molecular substructures are restrained.  We derive an analytical expression for the free energy of restraint, and test the accuracy of the expression using a series of model compounds with various combinrations of rigid aromatic rings and flexible aliphatic chains.   These "Hurley-style" restraints may be useful in many applications due to their simplicity.
+In this work, we propose a simpler alternative to Boresch-style orientation restraints that uses simple harmonic position restraints and only one force constant.  This scheme is easier to implement in practice, and very accurate when sufficiently rigid molecular substructures are restrained.  We derive an analytical expression for the free energy of restraining one, two and three atom positions, and validate this using Markov Chain Monte Carlo in a simple toy system.  We then test the accuracy of the analytical expression in a variety of use cases, by exploring a series of model organic compounds with various combinations of rigid aromatic rings and flexible aliphatic chains.   The results suggest that this simple position restraint scheme is sufficiently accurate to be useful in many applications.
 
 
 
@@ -125,14 +125,16 @@ To develop some simple rules for how to choose the best algorithm parameters, we
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{Results}
 
-\subsection*{A simple model of expanded ensemble sampling bottlenecks}
+\subsection*{Derivation of the }
 
 
 
 
 \section*{Discussion}
 
-Markov State Model approaches ...
+A big point to make here is that while the approximation is not exact, the error is (--we'll need to show this--) comparable to the error of state-of-the-art ABFE estimates in general.  s 
+
+Algo worth mentioning: it's straightforward to automate the process of picking atom positions to restrain.  A good rule of thumb is to pick three atoms farthest from each other, but still in a rigid substructure. 
 
 \begin{acknowledgments}
 The authors thank the participants of Folding@home, without whom this work would not be possible.  We thank D. E. Shaw Research for providing access to folding trajectory data. This research was supported in part by the National Science Foundation through major research instrumentation grant number CNS-09-58854 and National Institutes of Health grants 1R01GM123296 and NIH Research Resource Computer Cluster Grant S10-OD020095.
