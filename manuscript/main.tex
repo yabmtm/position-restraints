@@ -46,7 +46,7 @@ rsi,%
 
 \preprint{AIP/123-QED}
 
-\title[Convergence in expanded ensemble simulations]{Understanding and ameliorating sampling bottlenecks in expanded ensemble free energy simulations}% Force line breaks with \\My greatest achievement was getting
+\title[Simple restraint schemes for binding free energies]{Simple position restraint schemes for alchemical binding free energy calculations}% Force line breaks with \\My greatest achievement was getting
 
 % \title[Improved adaptive seeding]{Improved adaptive estimates of MSMs built from short reseeding trajectories}% Force line breaks with \\
 
@@ -60,6 +60,7 @@ rsi,%
 % Authors' institution and/or address%\\This line break forced with \textbackslash\textbackslash
 % }%
 
+\author{Matthew F.D. Hurley}
 \author{Vincent A. Voelz}
 \email{voelz@temple.edu}
 \affiliation{Department of Chemistry, Temple University, Philadelphia, PA 19122, USA}
@@ -69,12 +70,12 @@ rsi,%
              %  but any date may be explicitly specified
 
 \begin{abstract}
-\color{red}VAV: needs  updating. Expanded ensemble algorithms can sample multiple thermodynamic states in a single-replica simulation to estimate free energies, and provide easily interpretable results.  These advantages are offset by poor convergence issues that can arise for certain alchemical transformations.  Here, we show that bottlenecks in sampling arise when the distribution of energy differences between thermodynamic ensembles becomes too broad.  To ameliorate this problem, we develop a simple method to optimize the schedule of alchemical intermediates after some initial sampling.  We also develop a simple model of sampling hysteresis that results from the exponential scaling of the bias increment in the Wang-Landau algorithm, and how a power-law scaling of this increment can help avoid hysteresis.   These model enable the formulation of simple guidelines to help delay the onset of sampling bottlenecks and hysteresis.  We apply these techniques to example systems including  double-decoupling absolute free energy simulations to estimate ligand binding, and alchemical free energy simulations to estimate relative free energies of mutations.\color{black}
+Expanded ensemble algorithms can sample multiple thermodynamic states in a single-replica simulation to estimate free energies, and provide easily interpretable results.  In the case of receptor-ligand binding simulations, this entails sampling a schedule of thermodynamic intermediates which discretely de-couple the non-bonded interactions of the ligand, requiring the implementation of some form of restraint on the ligand's degrees of freedom to maintain its approximate orientation in largely de-coupled ensembles. While one could implement a simple harmonic center-of-mass restraint or more rigid Boresch restraints to ameliorate this problem, the prior does not help to restrict ligand orientation, and the latter can be more complicated to implement in an automated fashion for a large number of systems. Here, we show that by triangulating the ligand with three position restraints, we can accurately account for the bias of restricting the molecular degrees of freedom and that the free energy estimated by an expanaded ensemble scheme matches our derived analytical correction term in both a Markov Chain toy model and all-atom molecular dynamics.
 \end{abstract}
 
 %\pacs{Valid PACS appear here}% PACS, the Physics and Astronomy
                              % Classification Scheme.
-\keywords{alchemical free energy perturbation, flat-histogram methods, ligand binding, Monte Carlo}%Use showkeys class option if keyword
+\keywords{alchemical free energy perturbation, restraints, ligand binding, Monte Carlo, molecular dynamics}%Use showkeys class option if keyword
                               %display desired
 \maketitle
 
@@ -94,14 +95,13 @@ rsi,%
 
 Expanded ensemble algorithms allow multiple thermodynamic ensembles to be sampled in a single simulation.   This may be particularly useful for large-scale virtual screening on distributed computing platforms.
 
-EE methods perform well at predicting absolute binding free energies of ligald (in SAMPL challenges), and relative binding free energies for small-molecule inhbitors (Si Zhang et al).   But EE method have not seen widespread adoption, in part because of sampling problems that often arise in practice.
+EE methods perform well at predicting absolute binding free energies of ligands (in SAMPL challenges), and relative binding free energies for small-molecule inhbitors (Si Zhang et al).   But EE method have not seen widespread adoption, in part because of sampling problems that often arise in practice.
 
-One type of problem commonly seen in EE approaches are bottlenecks in sampling the full range of the alchemical intermediates.  Such bottlenecks are a result of poor acceptance of transitions between thermodynamic ensembles, an issue which is related to, but distinct from, the overlap in phase space between the thermodynamic ensembles. 
+One type of problem commonly seen in EE approaches is the determination of an appropriate restraint protocol to implement. Restraining ligand degrees of freedom in such simulations is required to predict accurate free energies of binding since the ligand must sample the bound pose throughout the simulation and will unbind once the non-bonded interactions are de-coupled if no restraints are used.
 
-Using the standard Wang-Landau flat-histogram algorithm as implemented in the GROMACS molecular dynamics simulation software, we have noticed that once these sampling bottlenecks begin, they become progressively worse, preventing visitation to all alchemical intermediates.
+Using the standard Wang-Landau flat-histogram algorithm as implemented in the GROMACS molecular dynamics simulation software, we determined that the bias induced from restraining ligand degrees of freedom must be accounted for, and preferably with a simple analytical correction term that may be used in post-processing.
 
-In this work, we develop a simple model based on 1D harmonic potentials that explains the appearance of sampling bottlenecks, and how they lead to hysteresis that further impedes efficient exploration of alchemical intermediates.  We also use the simple model to derive an algorithm that can help refine the schedule of alchemical intermediates to help avoid bottlenecks. 
-
+In this work, we develop a simple model based on a position-restrained Lennard-Jones trimer and show that this protocol can be scaled up to larger ligands up to a certain number of rotatable bonds, at which point ligand flexibility and distances between the triangulated position restraints is insufficient to properly restrain the ligand orientation.
 
 \subsection*{The expanded ensemble method}
 
@@ -109,36 +109,37 @@ In traditional free energy perturbation approaches, a number of simulations are 
 
 Consider a set of thermodynamic ensembles defined by reduced potential energy functions $u_i(x) = \beta U(x|\lambda_i)$, for a set of $\lambda$ values indexed by $i$, where $\lambda$ ranges between 0 and 1, and $\beta = 1/k_BT$.  The goal of expanded ensemble (EE) methods is to use Monte Carlo sampling to perform a random walk in $\lambda$-space, throughout a single simulation.  This is achieved through the use of constant bias potentials $\tilde{f}_i$, that modify each potential energy function as $u_i'(x) = u_i(x) - \tilde{f}_i$. The values of $\tilde{f}_i$ are adjusted on-the-fly, and iteratively refined to achieve Monte Carlo transition probabilities $p_{ij}$ between thermodynamic ensembles $i$ and $j$ that are equal in both directions ($p_{ij} = p_{ji}$).  If this can be achieved, then the difference in the biases $\Delta \tilde{f}_{ij} = \tilde{f}_j - \tilde{f}_i$ are equal to the true difference in free energies $\Delta f_{ij}$ (see Appendix A).
 
-In practice, bottlenecks often arise in the Monte Carlo sampling that lead to poor convergence of the free energy estimates.  One source of sampling bottlenecks comes from so-called ``hidden'' barriers in the free energy landscape, often linked to slow conformational changes of a ligand or receptor.\cite{slow-barriers}.  If the slow degrees of freedom can be identified, then appropriate enhanced sampling schemes can be employed.  But because such bottlenecks are highly system-dependent,  it is difficult to overcome sampling barriers of these types in a general way, and past efforts have addressed such problems on a case-by-case basis.\cite{case-by-case}
+%In practice, bottlenecks often arise in the Monte Carlo sampling that lead to poor convergence of the free energy estimates.  One source of sampling bottlenecks comes from so-called ``hidden'' barriers in the free energy landscape, often linked to slow conformational changes of a ligand or receptor.\cite{slow-barriers}.  If the slow degrees of freedom can be identified, then appropriate enhanced sampling schemes can be employed.  But because such bottlenecks are highly system-dependent,  it is difficult to overcome sampling barriers of these types in a general way, and past efforts have addressed such problems on a case-by-case basis.\cite{case-by-case}
 
-Another source of bottlenecks arises from poor Monte Carlo acceptance probabilities, and these can be addressed in a much more general way. Although such sampling barriers may be hard to predict ahead of time, they can easily be identified using short simulations, and steps can be taken to adjust the parameters of the expanded ensemble algorithm, or introduce more lambda intermediates.
+%Another source of bottlenecks arises from poor Monte Carlo acceptance probabilities, and these can be addressed in a much more general way. Although such sampling barriers may be hard to predict ahead of time, they can easily be identified using short simulations, and steps can be taken to adjust the parameters of the expanded ensemble algorithm, or introduce more lambda intermediates.
 
-Our goal in this study is to demonstrate, using a very simple system of 1D harmonic oscillators, with no hidden barriers, the general phenomenon that Monte Carlo bottlenecks in Wang-Landau expanded ensemble sampling arise from broad distributions $P(\Delta u_{ij})$, leading to hysteresis in $\lambda$-sampling.   Sampling bottlenecks can be alleviated by introducing more thermodynamic ensembles at intermediate values of $\lambda$, but not so many as to create additional travel time.
+%Our goal in this study is to demonstrate, using a very simple system of 1D harmonic oscillators, with no hidden barriers, the general phenomenon that Monte Carlo bottlenecks in Wang-Landau expanded ensemble sampling arise from broad distributions $P(\Delta u_{ij})$, leading to hysteresis in $\lambda$-sampling.   Sampling bottlenecks can be alleviated by introducing more thermodynamic ensembles at intermediate values of $\lambda$, but not so many as to create additional travel time.
 
-To develop some simple rules for how to choose the best algorithm parameters, we construct a simple continuous-time kinetic model of the evolution of free energy estimates, which predicts conditions under which hysteresis occurs.  \color{red} This model suggests that $\lambda$ intermediates be chosen to achieve at least $\sim XX\%$ acceptance probability between neighboring ensembles .... VAV:  I don't know what this will say yet. :) \color{black}
+%To develop some simple rules for how to choose the best algorithm parameters, we construct a simple continuous-time kinetic model of the evolution of free energy estimates, which predicts conditions under which hysteresis occurs.  \color{red} This model suggests that $\lambda$ intermediates be chosen to achieve at least $\sim XX\%$ acceptance probability between neighboring ensembles .... VAV:  I don't know what this will say yet. :) \color{black}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{Methods}
 
-\subsection{The Wang-Landau algorithm}
+\subsection{A Lennard-Jones Toy Model}
 
+\subsection{All-Atom Molecular Dynamics}
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{Results}
 
-\subsection*{A simple model of expanded ensemble sampling bottlenecks}
+\subsection*{A simple model for describing position restraints for estimating binding free energies}
 
 
 
 
 \section*{Discussion}
 
-Markov State Model approaches ...
+
 
 \begin{acknowledgments}
-The authors thank the participants of Folding@home, without whom this work would not be possible.  We thank D. E. Shaw Research for providing access to folding trajectory data. This research was supported in part by the National Science Foundation through major research instrumentation grant number CNS-09-58854 and National Institutes of Health grants 1R01GM123296 and NIH Research Resource Computer Cluster Grant S10-OD020095.
+This research was supported in part by the National Science Foundation through major research instrumentation grant number CNS-09-58854 and National Institutes of Health grants 1R01GM123296 and NIH Research Resource Computer Cluster Grant S10-OD020095.
 \end{acknowledgments}
 
 %
