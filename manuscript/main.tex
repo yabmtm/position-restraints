@@ -70,16 +70,13 @@ rsi,%
              %  but any date may be explicitly specified
 
 \begin{abstract}
-<<<<<<< HEAD
-Expanded ensemble algorithms can sample multiple thermodynamic states in a single-replica simulation to estimate free energies, and provide easily interpretable results.  In the case of receptor-ligand binding simulations, this entails sampling a schedule of thermodynamic intermediates which discretely de-couple the non-bonded interactions of the ligand, requiring the implementation of some form of restraint on the ligand's degrees of freedom to maintain its approximate orientation in largely de-coupled ensembles. While one could implement a simple harmonic center-of-mass restraint or more rigid Boresch restraints to ameliorate this problem, the prior does not help to restrict ligand orientation, and the latter can be more complicated to implement in an automated fashion for a large number of systems. Here, we show that by triangulating the ligand with three position restraints, we can accurately account for the bias of restricting the molecular degrees of freedom and that the free energy estimated by an expanaded ensemble scheme matches our derived analytical correction term in both a Markov Chain toy model and all-atom molecular dynamics.
-=======
+
 Computed free energies have become particularly valuable in the process of hit discovery and ligand screening for novel therapeutics. Simulation techniques based on free energy perturbation require sampling of alchemical intermediates which de-couple the non-bonded interactions of a molecule that is typically bound to a receptor. Harmonic restraints are typically imposed In order to maintain a bound-state orientation while the ligand is de-coupled. These restraints fall into several categories. Center-of-mass (COM) restraints are sufficient for maintaining the ligand close to its original conformation while allowing for sampling multiple binding modes, but do not . Boresch restraints are commonly used to maintain a specific bound orientation, requiring the combined implementation of restrained bond lengths, angles, and dihedrals. In this chapter, we propose an intermediate approach that loosely maintains the bound orientation of a molecule using three position restraints as well as a simple analytical correction for the bias imposed by it.
->>>>>>> main
 \end{abstract}
 
 %\pacs{Valid PACS appear here}% PACS, the Physics and Astronomy
                              % Classification Scheme.
-\keywords{alchemical free energy perturbation, restraints, ligand binding, Monte Carlo, molecular dynamics}%Use showkeys class option if keyword
+\keywords{alchemical free energy perturbation, flat-histogram methods, ligand binding, Monte Carlo}%Use showkeys class option if keyword
                               %display desired
 \maketitle
 
@@ -98,20 +95,13 @@ A restrained double-decoupling approach has long been a standard procedure for c
 
 Currently, the most popular restraint scheme is a method by Boresch et al \cite{boresch2003absolute} that utilizes a set of orthogonal harmonic restraints.  The advantage of this scheme is that it provides an exact analytical expression for the free energy of restraint for a ligand in solution.    There are several disadvantages to this scheme, however.  One disadvantage is the practical difficulty of implementing different kinds of restraints.  The method uses one distance restraint, two angle restraints, and three dihedral restraints, requiring the choice of six different force constant parameters.  Furthermore, great care is required to judiciously choose the degrees of freedom on which to apply these constraints.  This difficulty has recently been emphasized by Proccaci et al. \cite{procacci2021ns} who show that large biases in free energies estimated using a non-equilibrium work (NEW) method can be introduced when the Boresch-restrained ligand pose does not match well with the actual pose, which is often unknown before performing the calculation.
 
-<<<<<<< HEAD
-EE methods perform well at predicting absolute binding free energies of ligands (in SAMPL challenges), and relative binding free energies for small-molecule inhbitors (Si Zhang et al).   But EE method have not seen widespread adoption, in part because of sampling problems that often arise in practice.
+In this work, we propose a simpler alternative to Boresch-style orientation restraints that uses simple harmonic position restraints and only one force constant.  This scheme is easier to implement in practice, and very accurate when sufficiently rigid molecular substructures are restrained.  We derive an analytical expression for the free energy of restraining one, two and three atom positions, and validate this using Markov Chain Monte Carlo in a simple toy system.  We then test the accuracy of the analytical expression in a variety of use cases, by exploring a series of model organic compounds with various combinations of rigid aromatic rings and flexible aliphatic chains.   The results suggest that this simple position restraint scheme is sufficiently accurate to be useful in many applications.
 
-One type of problem commonly seen in EE approaches is the determination of an appropriate restraint protocol to implement. Restraining ligand degrees of freedom in such simulations is required to predict accurate free energies of binding since the ligand must sample the bound pose throughout the simulation and will unbind once the non-bonded interactions are de-coupled if no restraints are used.
 
-Using the standard Wang-Landau flat-histogram algorithm as implemented in the GROMACS molecular dynamics simulation software, we determined that the bias induced from restraining ligand degrees of freedom must be accounted for, and preferably with a simple analytical correction term that may be used in post-processing.
-=======
 In this work, we propose a simpler alternative to Boresch-style orientation restraints that uses simple harmonic position restraints and only one force constant.  This scheme is easier to implement in practice, and very accurate when sufficiently rigid molecular substructures are restrained.  We derive an analytical expression for the free energy of restraining one, two and three atom positions, and validate this using Markov Chain Monte Carlo in a simple toy system.  We then test the accuracy of the analytical expression in a variety of use cases, by exploring a series of model organic compounds with various combinations of rigid aromatic rings and flexible aliphatic chains.   The results suggest that this simple position restraint scheme is sufficiently accurate to be useful in many applications.
 
 
 
->>>>>>> main
-
-In this work, we develop a simple model based on a position-restrained Lennard-Jones trimer and show that this protocol can be scaled up to larger ligands up to a certain number of rotatable bonds, at which point ligand flexibility and distances between the triangulated position restraints is insufficient to properly restrain the ligand orientation.
 
 \subsection*{The expanded ensemble method}
 
@@ -119,47 +109,41 @@ In traditional free energy perturbation approaches, a number of simulations are 
 
 Consider a set of thermodynamic ensembles defined by reduced potential energy functions $u_i(x) = \beta U(x|\lambda_i)$, for a set of $\lambda$ values indexed by $i$, where $\lambda$ ranges between 0 and 1, and $\beta = 1/k_BT$.  The goal of expanded ensemble (EE) methods is to use Monte Carlo sampling to perform a random walk in $\lambda$-space, throughout a single simulation.  This is achieved through the use of constant bias potentials $\tilde{f}_i$, that modify each potential energy function as $u_i'(x) = u_i(x) - \tilde{f}_i$. The values of $\tilde{f}_i$ are adjusted on-the-fly, and iteratively refined to achieve Monte Carlo transition probabilities $p_{ij}$ between thermodynamic ensembles $i$ and $j$ that are equal in both directions ($p_{ij} = p_{ji}$).  If this can be achieved, then the difference in the biases $\Delta \tilde{f}_{ij} = \tilde{f}_j - \tilde{f}_i$ are equal to the true difference in free energies $\Delta f_{ij}$ (see Appendix A).
 
-%In practice, bottlenecks often arise in the Monte Carlo sampling that lead to poor convergence of the free energy estimates.  One source of sampling bottlenecks comes from so-called ``hidden'' barriers in the free energy landscape, often linked to slow conformational changes of a ligand or receptor.\cite{slow-barriers}.  If the slow degrees of freedom can be identified, then appropriate enhanced sampling schemes can be employed.  But because such bottlenecks are highly system-dependent,  it is difficult to overcome sampling barriers of these types in a general way, and past efforts have addressed such problems on a case-by-case basis.\cite{case-by-case}
+In practice, bottlenecks often arise in the Monte Carlo sampling that lead to poor convergence of the free energy estimates.  One source of sampling bottlenecks comes from so-called ``hidden'' barriers in the free energy landscape, often linked to slow conformational changes of a ligand or receptor.\cite{slow-barriers}.  If the slow degrees of freedom can be identified, then appropriate enhanced sampling schemes can be employed.  But because such bottlenecks are highly system-dependent,  it is difficult to overcome sampling barriers of these types in a general way, and past efforts have addressed such problems on a case-by-case basis.\cite{case-by-case}
 
-%Another source of bottlenecks arises from poor Monte Carlo acceptance probabilities, and these can be addressed in a much more general way. Although such sampling barriers may be hard to predict ahead of time, they can easily be identified using short simulations, and steps can be taken to adjust the parameters of the expanded ensemble algorithm, or introduce more lambda intermediates.
+Another source of bottlenecks arises from poor Monte Carlo acceptance probabilities, and these can be addressed in a much more general way. Although such sampling barriers may be hard to predict ahead of time, they can easily be identified using short simulations, and steps can be taken to adjust the parameters of the expanded ensemble algorithm, or introduce more lambda intermediates.
 
-%Our goal in this study is to demonstrate, using a very simple system of 1D harmonic oscillators, with no hidden barriers, the general phenomenon that Monte Carlo bottlenecks in Wang-Landau expanded ensemble sampling arise from broad distributions $P(\Delta u_{ij})$, leading to hysteresis in $\lambda$-sampling.   Sampling bottlenecks can be alleviated by introducing more thermodynamic ensembles at intermediate values of $\lambda$, but not so many as to create additional travel time.
+Our goal in this study is to demonstrate, using a very simple system of 1D harmonic oscillators, with no hidden barriers, the general phenomenon that Monte Carlo bottlenecks in Wang-Landau expanded ensemble sampling arise from broad distributions $P(\Delta u_{ij})$, leading to hysteresis in $\lambda$-sampling.   Sampling bottlenecks can be alleviated by introducing more thermodynamic ensembles at intermediate values of $\lambda$, but not so many as to create additional travel time.
 
-%To develop some simple rules for how to choose the best algorithm parameters, we construct a simple continuous-time kinetic model of the evolution of free energy estimates, which predicts conditions under which hysteresis occurs.  \color{red} This model suggests that $\lambda$ intermediates be chosen to achieve at least $\sim XX\%$ acceptance probability between neighboring ensembles .... VAV:  I don't know what this will say yet. :) \color{black}
+To develop some simple rules for how to choose the best algorithm parameters, we construct a simple continuous-time kinetic model of the evolution of free energy estimates, which predicts conditions under which hysteresis occurs.  \color{red} This model suggests that $\lambda$ intermediates be chosen to achieve at least $\sim XX\%$ acceptance probability between neighboring ensembles .... VAV:  I don't know what this will say yet. :) \color{black}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{Methods}
 
-\subsection{A Lennard-Jones Toy Model}
+\subsection{The Wang-Landau algorithm}
 
-\subsection{All-Atom Molecular Dynamics}
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{Results}
 
-<<<<<<< HEAD
-\subsection*{A simple model for describing position restraints for estimating binding free energies}
-=======
 \subsection*{Derivation of the }
->>>>>>> main
+
 
 
 
 
 \section*{Discussion}
 
-<<<<<<< HEAD
 
-=======
 A big point to make here is that while the approximation is not exact, the error is (--we'll need to show this--) comparable to the error of state-of-the-art ABFE estimates in general.  s 
 
 Algo worth mentioning: it's straightforward to automate the process of picking atom positions to restrain.  A good rule of thumb is to pick three atoms farthest from each other, but still in a rigid substructure. 
->>>>>>> main
+
 
 \begin{acknowledgments}
-This research was supported in part by the National Science Foundation through major research instrumentation grant number CNS-09-58854 and National Institutes of Health grants 1R01GM123296 and NIH Research Resource Computer Cluster Grant S10-OD020095.
+The authors thank the participants of Folding@home, without whom this work would not be possible.  We thank D. E. Shaw Research for providing access to folding trajectory data. This research was supported in part by the National Science Foundation through major research instrumentation grant number CNS-09-58854 and National Institutes of Health grants 1R01GM123296 and NIH Research Resource Computer Cluster Grant S10-OD020095.
 \end{acknowledgments}
 
 %
