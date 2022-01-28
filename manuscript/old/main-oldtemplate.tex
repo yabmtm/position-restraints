@@ -46,7 +46,7 @@ rsi,%
 
 \preprint{AIP/123-QED}
 
-\title[Simple restraint schemes for binding free energies]{Simple position restraint schemes for alchemical binding free energy calculations}% Force line breaks with \\My greatest achievement was getting
+\title[Convergence in expanded ensemble simulations]{Understanding and ameliorating sampling bottlenecks in expanded ensemble free energy simulations}% Force line breaks with \\My greatest achievement was getting
 
 % \title[Improved adaptive seeding]{Improved adaptive estimates of MSMs built from short reseeding trajectories}% Force line breaks with \\
 
@@ -60,7 +60,6 @@ rsi,%
 % Authors' institution and/or address%\\This line break forced with \textbackslash\textbackslash
 % }%
 
-\author{Matthew F.D. Hurley}
 \author{Vincent A. Voelz}
 \email{voelz@temple.edu}
 \affiliation{Department of Chemistry, Temple University, Philadelphia, PA 19122, USA}
@@ -70,8 +69,7 @@ rsi,%
              %  but any date may be explicitly specified
 
 \begin{abstract}
-
-Computed free energies have become particularly valuable in the process of hit discovery and ligand screening for novel therapeutics. Simulation techniques based on free energy perturbation require sampling of alchemical intermediates which de-couple the non-bonded interactions of a molecule that is typically bound to a receptor. Harmonic restraints are typically imposed In order to maintain a bound-state orientation while the ligand is de-coupled. These restraints fall into several categories. Center-of-mass (COM) restraints are sufficient for maintaining the ligand close to its original conformation while allowing for sampling multiple binding modes, but do not . Boresch restraints are commonly used to maintain a specific bound orientation, requiring the combined implementation of restrained bond lengths, angles, and dihedrals. In this chapter, we propose an intermediate approach that loosely maintains the bound orientation of a molecule using three position restraints as well as a simple analytical correction for the bias imposed by it.
+\color{red}VAV: needs  updating. Expanded ensemble algorithms can sample multiple thermodynamic states in a single-replica simulation to estimate free energies, and provide easily interpretable results.  These advantages are offset by poor convergence issues that can arise for certain alchemical transformations.  Here, we show that bottlenecks in sampling arise when the distribution of energy differences between thermodynamic ensembles becomes too broad.  To ameliorate this problem, we develop a simple method to optimize the schedule of alchemical intermediates after some initial sampling.  We also develop a simple model of sampling hysteresis that results from the exponential scaling of the bias increment in the Wang-Landau algorithm, and how a power-law scaling of this increment can help avoid hysteresis.   These model enable the formulation of simple guidelines to help delay the onset of sampling bottlenecks and hysteresis.  We apply these techniques to example systems including  double-decoupling absolute free energy simulations to estimate ligand binding, and alchemical free energy simulations to estimate relative free energies of mutations.\color{black}
 \end{abstract}
 
 %\pacs{Valid PACS appear here}% PACS, the Physics and Astronomy
@@ -90,17 +88,19 @@ Computed free energies have become particularly valuable in the process of hit d
 % \end{quotation}
 
 \section*{Introduction}
+% In the last few years, there has been great interest in using expanded-ensemble (EE) methods\cite{lyubartsev1992new} to perform absolute and relative ligand binding free energy calculations (CITE Shirts papers, others).\cite{monroe2014converging}
 
-A restrained double-decoupling approach has long been a standard procedure for calculating absolute binding free energies of protein-ligand binding.  In this approach, the free energy of alchemically decoupling the ligand is usually calculated in two steps: first, the free energy of \textit{restraining} the ligand is calculated, and then the free energy of decoupling the restrained ligand's nonbonded interactions is calculated.     For a ligand in complex with its protein receptor, the restraint is vitally important to keep the ligand from dissociating.  For a ligand in solution, the restraint free energy can be estimated analytically. 
+% In the recent SAMPL6 challenge to predict host-guest affinities, EE methods performed with similar accuracy and efficiency to Hamiltonian replica exchange (HREX), with the advantage that the calculation only requires a single simulation that does not have to be coupled to other replicas.\cite{rizzi2020sampl6}   This property is highly desirable for large-scale \textit{in silico} screening efforts performed asynchronously using massively parallel distributed computing platforms like Folding@home, as pursued recently by Hurley et al.
 
-Currently, the most popular restraint scheme is a method by Boresch et al \cite{boresch2003absolute} that utilizes a set of orthogonal harmonic restraints.  The advantage of this scheme is that it provides an exact analytical expression for the free energy of restraint for a ligand in solution.    There are several disadvantages to this scheme, however.  One disadvantage is the practical difficulty of implementing different kinds of restraints.  The method uses one distance restraint, two angle restraints, and three dihedral restraints, requiring the choice of six different force constant parameters.  Furthermore, great care is required to judiciously choose the degrees of freedom on which to apply these constraints.  This difficulty has recently been emphasized by Proccaci et al. \cite{procacci2021ns} who show that large biases in free energies estimated using a non-equilibrium work (NEW) method can be introduced when the Boresch-restrained ligand pose does not match well with the actual pose, which is often unknown before performing the calculation.
+Expanded ensemble algorithms allow multiple thermodynamic ensembles to be sampled in a single simulation.   This may be particularly useful for large-scale virtual screening on distributed computing platforms.
 
-In this work, we propose a simpler alternative to Boresch-style orientation restraints that uses simple harmonic position restraints and only one force constant.  This scheme is easier to implement in practice, and very accurate when sufficiently rigid molecular substructures are restrained.  We derive an analytical expression for the free energy of restraining one, two and three atom positions, and validate this using Markov Chain Monte Carlo in a simple toy system.  We then test the accuracy of the analytical expression in a variety of use cases, by exploring a series of model organic compounds with various combinations of rigid aromatic rings and flexible aliphatic chains.   The results suggest that this simple position restraint scheme is sufficiently accurate to be useful in many applications.
+EE methods perform well at predicting absolute binding free energies of ligald (in SAMPL challenges), and relative binding free energies for small-molecule inhbitors (Si Zhang et al).   But EE method have not seen widespread adoption, in part because of sampling problems that often arise in practice.
 
+One type of problem commonly seen in EE approaches are bottlenecks in sampling the full range of the alchemical intermediates.  Such bottlenecks are a result of poor acceptance of transitions between thermodynamic ensembles, an issue which is related to, but distinct from, the overlap in phase space between the thermodynamic ensembles. 
 
-In this work, we propose a simpler alternative to Boresch-style orientation restraints that uses simple harmonic position restraints and only one force constant.  This scheme is easier to implement in practice, and very accurate when sufficiently rigid molecular substructures are restrained.  We derive an analytical expression for the free energy of restraining one, two and three atom positions, and validate this using Markov Chain Monte Carlo in a simple toy system.  We then test the accuracy of the analytical expression in a variety of use cases, by exploring a series of model organic compounds with various combinations of rigid aromatic rings and flexible aliphatic chains.   The results suggest that this simple position restraint scheme is sufficiently accurate to be useful in many applications.
+Using the standard Wang-Landau flat-histogram algorithm as implemented in the GROMACS molecular dynamics simulation software, we have noticed that once these sampling bottlenecks begin, they become progressively worse, preventing visitation to all alchemical intermediates.
 
-
+In this work, we develop a simple model based on 1D harmonic potentials that explains the appearance of sampling bottlenecks, and how they lead to hysteresis that further impedes efficient exploration of alchemical intermediates.  We also use the simple model to derive an algorithm that can help refine the schedule of alchemical intermediates to help avoid bottlenecks. 
 
 
 \subsection*{The expanded ensemble method}
@@ -128,19 +128,14 @@ To develop some simple rules for how to choose the best algorithm parameters, we
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{Results}
 
-\subsection*{Derivation of the }
-
+\subsection*{A simple model of expanded ensemble sampling bottlenecks}
 
 
 
 
 \section*{Discussion}
 
-
-A big point to make here is that while the approximation is not exact, the error is (--we'll need to show this--) comparable to the error of state-of-the-art ABFE estimates in general.  s 
-
-Algo worth mentioning: it's straightforward to automate the process of picking atom positions to restrain.  A good rule of thumb is to pick three atoms farthest from each other, but still in a rigid substructure. 
-
+Markov State Model approaches ...
 
 \begin{acknowledgments}
 The authors thank the participants of Folding@home, without whom this work would not be possible.  We thank D. E. Shaw Research for providing access to folding trajectory data. This research was supported in part by the National Science Foundation through major research instrumentation grant number CNS-09-58854 and National Institutes of Health grants 1R01GM123296 and NIH Research Resource Computer Cluster Grant S10-OD020095.
@@ -151,7 +146,7 @@ The authors thank the participants of Folding@home, without whom this work would
 
 
 % \nocite{*}
-\bibliography{main}% Produces the bibliography via BibTeX.
+\bibliography{toy-ee}% Produces the bibliography via BibTeX.
 
 
 \section*{Appendix}
