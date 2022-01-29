@@ -21,10 +21,8 @@
 % Use the file aiptemplate.tex as a template for your document.
 \documentclass[%
  aip,
-%jmp,%
-%bmf,%
-%sd,%
-rsi,%
+ rsi,
+ jmp,%
  amsmath,amssymb,
 %preprint,%
  reprint,%
@@ -32,19 +30,20 @@ rsi,%
 %author-numerical,%
 ]{revtex4-1}
 
-\usepackage{graphicx}% Include figure files
-\usepackage{dcolumn}% Align table columns on decimal point
+
+\usepackage{graphicx}   % Include figure files
+\usepackage{dcolumn  }% Align table columns on decimal point
 \usepackage{bm}% bold math
 %\usepackage[mathlines]{lineno}% Enable numbering of text and display math
 %\linenumbers\relax % Commence numbering lines
 
 \usepackage{xcolor}
-
+\setlength{\marginparwidth}{2cm} 
 \usepackage{todonotes}
 
-\begin{document}
-
 \preprint{AIP/123-QED}
+
+\begin{document}
 
 \title[Simple restraint schemes for binding free energies]{Simple position restraint schemes for alchemical binding free energy calculations}% Force line breaks with \\My greatest achievement was getting
 
@@ -93,10 +92,7 @@ Computed free energies have become particularly valuable in the process of hit d
 
 A restrained double-decoupling approach has long been a standard procedure for calculating absolute binding free energies of protein-ligand binding.  In this approach, the free energy of alchemically decoupling the ligand is usually calculated in two steps: first, the free energy of \textit{restraining} the ligand is calculated, and then the free energy of decoupling the restrained ligand's nonbonded interactions is calculated.     For a ligand in complex with its protein receptor, the restraint is vitally important to keep the ligand from dissociating.  For a ligand in solution, the restraint free energy can be estimated analytically. 
 
-Currently, the most popular restraint scheme is a method by Boresch et al \cite{boresch2003absolute} that utilizes a set of orthogonal harmonic restraints.  The advantage of this scheme is that it provides an exact analytical expression for the free energy of restraint for a ligand in solution.    There are several disadvantages to this scheme, however.  One disadvantage is the practical difficulty of implementing different kinds of restraints.  The method uses one distance restraint, two angle restraints, and three dihedral restraints, requiring the choice of six different force constant parameters.  Furthermore, great care is required to judiciously choose the degrees of freedom on which to apply these constraints.  This difficulty has recently been emphasized by Proccaci et al. \cite{procacci2021ns} who show that large biases in free energies estimated using a non-equilibrium work (NEW) method can be introduced when the Boresch-restrained ligand pose does not match well with the actual pose, which is often unknown before performing the calculation.
-
-In this work, we propose a simpler alternative to Boresch-style orientation restraints that uses simple harmonic position restraints and only one force constant.  This scheme is easier to implement in practice, and very accurate when sufficiently rigid molecular substructures are restrained.  We derive an analytical expression for the free energy of restraining one, two and three atom positions, and validate this using Markov Chain Monte Carlo in a simple toy system.  We then test the accuracy of the analytical expression in a variety of use cases, by exploring a series of model organic compounds with various combinations of rigid aromatic rings and flexible aliphatic chains.   The results suggest that this simple position restraint scheme is sufficiently accurate to be useful in many applications.
-
+Currently, the most popular restraint scheme is a method by Boresch et al. \cite{boresch2003absolute} that utilizes a set of orthogonal harmonic restraints.  The advantage of this scheme is that it provides an exact analytical expression for the free energy of restraint for a ligand in solution.    There are several disadvantages to this scheme, however.  One disadvantage is the practical difficulty of implementing different kinds of restraints.  The method uses one distance restraint, two angle restraints, and three dihedral restraints, requiring the choice of six different force constant parameters.  Furthermore, great care is required to judiciously choose the degrees of freedom on which to apply these constraints.  This difficulty has recently been emphasized by Proccaci et al. \cite{procacci2021ns} who show that large biases in free energies estimated using a non-equilibrium work (NEW) method can be introduced when the Boresch-restrained ligand pose does not match well with the actual pose, which is often unknown before performing the calculation.
 
 In this work, we propose a simpler alternative to Boresch-style orientation restraints that uses simple harmonic position restraints and only one force constant.  This scheme is easier to implement in practice, and very accurate when sufficiently rigid molecular substructures are restrained.  We derive an analytical expression for the free energy of restraining one, two and three atom positions, and validate this using Markov Chain Monte Carlo in a simple toy system.  We then test the accuracy of the analytical expression in a variety of use cases, by exploring a series of model organic compounds with various combinations of rigid aromatic rings and flexible aliphatic chains.   The results suggest that this simple position restraint scheme is sufficiently accurate to be useful in many applications.
 
@@ -105,7 +101,7 @@ In this work, we propose a simpler alternative to Boresch-style orientation rest
 
 \subsection*{The expanded ensemble method}
 
-In traditional free energy perturbation approaches, a number of simulations are performed in different thermodynamic ensembles indexed by $\lambda$, corresponding to (reduced) potential energy functions $u_{\lambda}(x) = \beta U_{\lambda}(x)$, where $\beta = 1/kT$.  For instance, to calculate a molecule's free energy of solvation, the $\lambda$ parameter might interpolate between 0 and 1 for potential energy functions $u_{\lambda}(x) = u_{\text{bonded}}(x) + \lambda u_{\text{nonbonded}}(x)$, for a simulation of the molecule in solution.  Due to the statistical inefficiencies of exponential averaging, it is very difficult to directly estimate the free energy $f = -\ln Z_{\lambda=1}/Z_{\lambda=0}$, where $Z_{\lambda} = \int e^{-u_{\lambda}(x)} dx$ is the partition function.  Instead,  the calculation is performed at many intermediate $\lambda$ values (e.g. $\lambda_i = 0, 0.05, 0.1, .... 1$), with the energies computed from these simulations used as input to one of several multi-ensemble free energy estimators.\cite{shirts2008statistically, TI} 
+In traditional free energy perturbation approaches, a number of simulations are performed in different thermodynamic ensembles indexed by $\lambda$, corresponding to (reduced) potential energy functions $u_{\lambda}(x) = \beta U_{\lambda}(x)$, where $\beta = 1/kT$.  For instance, to calculate a molecule's free energy of solvation, the $\lambda$ parameter might interpolate between 0 and 1 for potential energy functions $u_{\lambda}(x) = u_{\text{bonded}}(x) + \lambda u_{\text{nonbonded}}(x)$, for a simulation of the molecule in solution.  Due to the statistical inefficiencies of exponential averaging, it is very difficult to directly estimate the free energy $f = -\ln Z_{\lambda=1}/Z_{\lambda=0}$, where $Z_{\lambda} = \int e^{-u_{\lambda}(x)} dx$ is the partition function.  Instead,  the calculation is performed at many intermediate $\lambda$ values (e.g. $\lambda_i = 0, 0.05, 0.1, .... 1$), with the energies computed from these simulations used as input to one of several multi-ensemble free energy estimators.\cite{shirts2008statistically,TI} 
 
 Consider a set of thermodynamic ensembles defined by reduced potential energy functions $u_i(x) = \beta U(x|\lambda_i)$, for a set of $\lambda$ values indexed by $i$, where $\lambda$ ranges between 0 and 1, and $\beta = 1/k_BT$.  The goal of expanded ensemble (EE) methods is to use Monte Carlo sampling to perform a random walk in $\lambda$-space, throughout a single simulation.  This is achieved through the use of constant bias potentials $\tilde{f}_i$, that modify each potential energy function as $u_i'(x) = u_i(x) - \tilde{f}_i$. The values of $\tilde{f}_i$ are adjusted on-the-fly, and iteratively refined to achieve Monte Carlo transition probabilities $p_{ij}$ between thermodynamic ensembles $i$ and $j$ that are equal in both directions ($p_{ij} = p_{ji}$).  If this can be achieved, then the difference in the biases $\Delta \tilde{f}_{ij} = \tilde{f}_j - \tilde{f}_i$ are equal to the true difference in free energies $\Delta f_{ij}$ (see Appendix A).
 
@@ -150,9 +146,11 @@ The authors thank the participants of Folding@home, without whom this work would
 % ****** End of file aipsamp.tex ******
 
 
+\section*{References}
 % \nocite{*}
-\bibliography{main}% Produces the bibliography via BibTeX.
 
+\bibliography{main}% Produces the bibliography via BibTeX.
+%\bibliography{aipsamp}% Produces the bibliography via BibTeX.
 
 \section*{Appendix}
 
@@ -185,18 +183,15 @@ Thermodynamic ensembles biased in this way also have equal Monte Carlo acceptanc
     &= \frac{\int_{\Delta u_{ij} < \Delta f_{ij} } (1) e^{-u_i(x)} dx}{Z_1} + \frac{\int_{\Delta u_{ij} \geq \Delta f_{ij} } e^{-u_j(x)} e^{\Delta f_{ij}} dx}{Z_1} \\
     &=  \frac{Z_1}{Z_2} \frac{\int_{\Delta u_{ji} > \Delta f_{ji} } e^{-u_i(x)} e^{\Delta f_{ji}} dx}{Z_1} + \frac{Z_1}{Z_2} \frac{\int_{\Delta u_{ij} \geq \tilde{f}_{ij} } e^{-u_j(x)} dx}{Z_1} \\
     &=  \frac{\int_{\Delta u_{ji} > \Delta f_{ji} } e^{-\Delta u_{ji}(x)} e^{-u_j(x)} dx}{Z_2} + \frac{\int_{\Delta u_{ji} \leq \Delta \tilde{f}_{ji} } (1) e^{-u_j(x)} dx}{Z_2} \\
-    &= \frac{ \int \min [ 1, e^{-\Delta u_{ji}(x) + \Delta f_{ji} } ] e^{-u_j(x)} dx} {Z_2} = p_{ji}. \\
+    &= \frac{ \int \min [ 1, e^{-\Delta u_{ji}(x) + \Delta f_{ji} } ] e^{-u_j(x)} dx} {Z_2} = p_{ji}. 
 \end{align}
 
 
-
-
-\newpage
-
+% \newpage
 
 % \section*{Supporting Information}
 % \subsubsection*{Supporting Figures}
 
-
-
 \end{document}
+
+
